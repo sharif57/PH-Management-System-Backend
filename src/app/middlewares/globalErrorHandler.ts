@@ -10,6 +10,8 @@ export const globalErrorHandler = (
   res: Response,
   next: NextFunction
 ) => {
+  console.log(err);
+
   let statusCode = 500;
   let message = `Something went wrong ${err.message}`;
 
