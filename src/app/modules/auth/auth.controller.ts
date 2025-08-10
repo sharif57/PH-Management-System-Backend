@@ -3,10 +3,25 @@ import { catchAsync } from "../../utils/catchAsync"
 import httpStatus from "http-status-codes";
 import { sendResponse } from "../../utils/sendResponse"
 import { AuthServices } from "./auth.service";
+import { setAuthCookie } from "../../utils/setCookie";
 
 const credentialsLogin =  catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
 
     const loginInfo = await AuthServices.credentialsLogin(req.body)
+
+    // res.cookie('accessToken', loginInfo.accessToken, {
+    //     httpOnly: true,
+    //     secure: false,
+    // })
+
+    
+    //   res.cookie('refreshToken', loginInfo.refreshToken,{
+        //     httpOnly: true,
+        //     secure: false,
+        // })
+        
+    setAuthCookie(res, loginInfo)
+
     console.log(loginInfo)
 
     sendResponse(res, {
@@ -17,6 +32,35 @@ const credentialsLogin =  catchAsync(async (req: Request, res: Response, next: N
     })
 })
 
+
+const getNewAccessToken =  catchAsync(async (req: Request, res: Response, next: NextFunction)=>{
+    
+    const refreshToken  = req.cookies.refreshToken
+    // const refreshToken  = req.headers.authorization
+
+    if(!refreshToken){
+        throw new Error("Refresh token is missing")
+    }
+
+    const tokenInfo = await AuthServices.getNewAccessToken(refreshToken as string)
+    console.log(tokenInfo)
+
+    //  res.cookie('accessToken', tokenInfo.accessToken, {
+    //     httpOnly: true,
+    //     secure: false,
+    // })
+
+    setAuthCookie(res, tokenInfo)
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: " User logged in successfully",
+        data: tokenInfo,
+    })
+})
+
 export const AuthControllers ={
-    credentialsLogin
+    credentialsLogin,
+    getNewAccessToken
 }
